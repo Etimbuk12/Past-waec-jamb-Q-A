@@ -1,10 +1,10 @@
 const CACHE = 'oxbridge-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/Past-waec-jamb-Q-A/',
+  '/Past-waec-jamb-Q-A/index.html',
+  '/Past-waec-jamb-Q-A/manifest.json',
+  '/Past-waec-jamb-Q-A/icon-192.png',
+  '/Past-waec-jamb-Q-A/icon-512.png'
 ];
 
 self.addEventListener('install', e => {
