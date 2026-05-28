@@ -2,7 +2,7 @@
   "name": "OX-Bridge Learning Hub",
   "short_name": "OX-Bridge",
   "description": "AI-powered learning platform for Nigerian students — WAEC, JAMB, Nursery to University",
-  "start_url": "/index.html",
+  "start_url": "/Past-waec-jamb-Q-A/index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f1e3d",
@@ -13,7 +13,7 @@
   ],
   "categories": ["education"],
   "lang": "en-NG",
-  "scope": "/",
+  "scope": "/Past-waec-jamb-Q-A/",
   "screenshots": [
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
