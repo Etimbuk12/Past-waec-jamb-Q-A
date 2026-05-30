@@ -1,0 +1,8 @@
+# robots.txt — OX-Bridge Learning Hub
+# https://ox-bridgelearninghub.com.ng
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://ox-bridgelearninghub.com.ng/sitemap.xml
