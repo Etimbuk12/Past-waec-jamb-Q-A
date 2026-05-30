@@ -2321,6 +2321,14 @@ function checkBreakpoint(){
 // NAVIGATION
 // ============================================================
 function go(id){
+  // Stop voice whenever navigating away
+  if(window.speechSynthesis){ window.speechSynthesis.cancel(); }
+  if(window._voiceResumeTimer){ clearInterval(window._voiceResumeTimer); window._voiceResumeTimer=null; }
+  const wave = document.getElementById('voice-wave-indicator');
+  const statusEl = document.getElementById('chat-status-text');
+  if(wave) wave.style.display='none';
+  if(statusEl) statusEl.textContent='Online · Ready to help';
+
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   const p = document.getElementById(id);
   if(p){ p.classList.add("active"); window.scrollTo(0,0); }
@@ -2720,64 +2728,82 @@ function toggleVoice(){
 function speakText(text){
   if(!voiceEnabled) return;
   if(!window.speechSynthesis) return;
+
+  // Cancel any ongoing speech and clear resume timer
   window.speechSynthesis.cancel();
+  if(window._voiceResumeTimer){ clearInterval(window._voiceResumeTimer); window._voiceResumeTimer=null; }
 
-  // Clean markdown symbols
-  const clean = text.replace(/[*_`#~\[\]]/g,'').trim();
+  // Small delay to let cancel() fully take effect on Android
+  setTimeout(()=>{
+    const clean = text.replace(/[*_`#~\[\]]/g,'').trim();
 
-  // Split into sentence chunks — fixes Android/Chrome cutoff bug
-  const chunks = clean.match(/[^.!?]+[.!?]*/g) || [clean];
-  const groups = [];
-  let current = '';
-  chunks.forEach(chunk => {
-    if((current + chunk).length < 180){
-      current += chunk;
-    } else {
-      if(current) groups.push(current.trim());
-      current = chunk;
-    }
-  });
-  if(current) groups.push(current.trim());
+    // Split into sentence chunks — fixes Android/Chrome cutoff bug
+    const chunks = clean.match(/[^.!?]+[.!?]*/g) || [clean];
+    const groups = [];
+    let current = '';
+    chunks.forEach(chunk => {
+      if((current + chunk).length < 180){
+        current += chunk;
+      } else {
+        if(current) groups.push(current.trim());
+        current = chunk;
+      }
+    });
+    if(current) groups.push(current.trim());
+    if(!groups.length) return;
 
-  // Pick best female voice
-  const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v =>
-    v.lang.startsWith('en') && /female|woman|samantha|zira|susan|victoria|karen|moira|fiona|tessa/i.test(v.name)
-  ) || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('google'))
-    || voices.find(v => v.lang.startsWith('en'));
+    // Pick best female voice
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v =>
+      v.lang.startsWith('en') && /female|woman|samantha|zira|susan|victoria|karen|moira|fiona|tessa/i.test(v.name)
+    ) || voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('google'))
+      || voices.find(v => v.lang.startsWith('en'));
 
-  const wave = document.getElementById('voice-wave-indicator');
-  const statusEl = document.getElementById('chat-status-text');
+    const wave = document.getElementById('voice-wave-indicator');
+    const statusEl = document.getElementById('chat-status-text');
 
-  let index = 0;
-  function speakNext(){
-    if(index >= groups.length){
-      if(wave) wave.style.display = 'none';
-      if(statusEl) statusEl.textContent = 'Online · Ready to help';
-      return;
-    }
-    const utt = new SpeechSynthesisUtterance(groups[index]);
-    if(preferred) utt.voice = preferred;
-    utt.rate = 0.97; utt.pitch = 1.08; utt.volume = 1;
-    if(index === 0){
-      utt.onstart = () => {
-        if(wave) wave.style.display = 'flex';
-        if(statusEl) statusEl.textContent = 'Speaking...';
+    let index = 0;
+    let cancelled = false;
+
+    function speakNext(){
+      if(cancelled) return;
+      if(index >= groups.length){
+        if(wave) wave.style.display = 'none';
+        if(statusEl) statusEl.textContent = 'Online · Ready to help';
+        if(window._voiceResumeTimer){ clearInterval(window._voiceResumeTimer); window._voiceResumeTimer=null; }
+        return;
+      }
+      const utt = new SpeechSynthesisUtterance(groups[index]);
+      if(preferred) utt.voice = preferred;
+      utt.rate = 0.95; utt.pitch = 1.05; utt.volume = 1;
+      if(index === 0){
+        utt.onstart = () => {
+          if(wave) wave.style.display = 'flex';
+          if(statusEl) statusEl.textContent = 'Speaking...';
+        };
+      }
+      utt.onend = () => {
+        if(!cancelled){ index++; speakNext(); }
       };
+      utt.onerror = (e) => {
+        if(e.error === 'interrupted' || e.error === 'canceled') { cancelled = true; return; }
+        if(!cancelled){ index++; speakNext(); }
+      };
+      currentUtterance = utt;
+      window.speechSynthesis.speak(utt);
     }
-    utt.onend = () => { index++; speakNext(); };
-    utt.onerror = () => { index++; speakNext(); };
-    currentUtterance = utt;
-    window.speechSynthesis.speak(utt);
-  }
 
-  // Workaround for Chrome Android resuming after pause
-  const resumeTimer = setInterval(() => {
-    if(window.speechSynthesis.paused) window.speechSynthesis.resume();
-    if(!window.speechSynthesis.speaking) clearInterval(resumeTimer);
-  }, 5000);
+    // Store reference so go() can cancel it
+    window._currentSpeakCancelFn = () => { cancelled = true; };
 
-  speakNext();
+    // Workaround for Chrome Android pausing mid-speech
+    window._voiceResumeTimer = setInterval(() => {
+      if(!window.speechSynthesis.speaking){ clearInterval(window._voiceResumeTimer); window._voiceResumeTimer=null; return; }
+      if(window.speechSynthesis.paused) window.speechSynthesis.resume();
+    }, 5000);
+
+    speakNext();
+  }, 150);
 }
 
 function stopSpeaking(){
@@ -2860,7 +2886,7 @@ function renderMarkdown(text){
     .replace(/\n/g,'<br>');
 }
 
-function appendChat(role, text){
+function appendChat(role, text, autoSpeak=false){
   const box = document.getElementById('chat-box');
   const welcome = box.querySelector('.chat-welcome');
   if(welcome) welcome.remove();
@@ -2901,8 +2927,8 @@ function appendChat(role, text){
           </button>
         </div>
       </div>`;
-    // auto speak AI response
-    if(voiceEnabled) speakText(text);
+    // Only auto-speak brand new AI responses — NOT history messages
+    if(autoSpeak && voiceEnabled) speakText(text);
   }
   box.appendChild(row);
   box.scrollTop = box.scrollHeight;
@@ -2944,7 +2970,7 @@ async function loadChatHistory(){
     const box = document.getElementById('chat-box');
     box.innerHTML = '';
     if(Array.isArray(d) && d.length > 0){
-      d.forEach(h => appendChat(h.role==='user'?'user':'ai', h.message));
+      d.forEach(h => appendChat(h.role==='user'?'user':'ai', h.message, false));
     } else {
       showWelcome();
     }
@@ -2957,7 +2983,9 @@ async function sendChat(){
   if(!msg) return;
   const subj = document.getElementById('ac-subj').value.trim()||'General';
   const level = document.getElementById('ac-level').value;
-  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  if(window.speechSynthesis){ window.speechSynthesis.cancel(); }
+  if(window._voiceResumeTimer){ clearInterval(window._voiceResumeTimer); window._voiceResumeTimer=null; }
+  if(window._currentSpeakCancelFn){ window._currentSpeakCancelFn(); window._currentSpeakCancelFn=null; }
   appendChat('user', msg);
   ta.value = ''; updateCharCount(); ta.style.height='auto';
 
@@ -2979,7 +3007,7 @@ async function sendChat(){
     const d = await r.json();
     document.getElementById('typing-row')?.remove();
     document.getElementById('chat-status-text').textContent = 'Online · Ready to help';
-    appendChat('ai', d.response || 'Sorry, I could not get a response. Try again.');
+    appendChat('ai', d.response || 'Sorry, I could not get a response. Try again.', true);
   }catch(e){
     document.getElementById('typing-row')?.remove();
     document.getElementById('chat-status-text').textContent = 'Online · Ready to help';
