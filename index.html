@@ -1683,7 +1683,7 @@ footer .logo { font-size:17px; margin-bottom:10px; display:block; }
     <!-- Daily Challenge -->
     <div class="card daily-card" style="margin-bottom:24px;">
       <div class="daily-label">Daily Challenge</div>
-      <p style="color:var(--muted);font-size:12px;margin-bottom:14px;">Answer correctly for +5 points &amp; +10 coins!</p>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:14px;">Answer correctly for +3 points &amp; +3 coins!</p>
       <div id="dc-area"><div class="skel" style="height:18px;margin-bottom:8px;"></div><div class="skel" style="height:40px;"></div></div>
     </div>
 
@@ -2337,6 +2337,15 @@ function go(id){
   if(id==="page-profile")     loadProfile();
   if(id==="page-subjects")    initSubjects();
   if(id==="page-aichat")      loadChatHistory();
+  if(id==="page-quiz"){
+    document.getElementById("qz-setup").style.display="block";
+    document.getElementById("qz-active").style.display="none";
+    document.getElementById("qz-results").style.display="none";
+    document.getElementById("qz-expl").style.display="none";
+    document.getElementById("qz-next").style.display="none";
+    clearInterval(qTimer);
+    qData=[]; qIdx=0; qScore=0;
+  }
   closeMob();
 }
 function nav(id){ go(id); }
@@ -2546,7 +2555,20 @@ function renderSubjects(){
   `).join("");
 }
 function openLearn(s,l){ document.getElementById("l-subj").value=s; document.getElementById("l-level").value=l; go("page-learn"); }
-function openQuiz(s,l){ document.getElementById("qz-subj").value=s; document.getElementById("qz-level").value=l; go("page-quiz"); }
+function openQuiz(s,l){
+  document.getElementById("qz-subj").value=s;
+  document.getElementById("qz-level").value=l;
+  // Reset quiz arena completely every time
+  document.getElementById("qz-setup").style.display="block";
+  document.getElementById("qz-active").style.display="none";
+  document.getElementById("qz-results").style.display="none";
+  document.getElementById("qz-topic").value="";
+  document.getElementById("qz-expl").style.display="none";
+  document.getElementById("qz-next").style.display="none";
+  clearInterval(qTimer);
+  qData=[]; qIdx=0; qScore=0;
+  go("page-quiz");
+}
 
 // ============================================================
 // LEARN
@@ -2652,7 +2674,7 @@ function answerQ(idx,btn){
   if(idx===ci){
     btn.classList.add("correct"); qScore++;
     document.getElementById("qz-live").textContent=qScore;
-    toast("Correct! +5 points","success");
+    toast("Correct! +3 points","success");
   }else{
     btn.classList.add("wrong");
     if(opts[ci]) opts[ci].classList.add("correct");
