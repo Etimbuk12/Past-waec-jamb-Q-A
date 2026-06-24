@@ -486,6 +486,75 @@ select.inp option { background:var(--surface); color:var(--text); }
 .opt:disabled { cursor:not-allowed; }
 
 /* ══════════════════════════════════════════════════
+   PAST QUESTIONS — clean session UI
+══════════════════════════════════════════════════ */
+.pq-exam-row { display:flex; gap:8px; margin-bottom:18px; }
+.pq-exam-btn {
+  flex:1; padding:10px 0; border-radius:var(--radius); font-weight:600; font-size:13.5px;
+  cursor:pointer; transition:all .18s; border:1.5px solid var(--border);
+  background:var(--surface2); color:var(--text2);
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+.pq-exam-btn:hover { border-color:var(--border2); }
+.pq-exam-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+.pq-setup-row { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+.pq-setup-row .inp { margin:0; }
+
+.pq-status {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:8px; gap:10px;
+}
+.pq-status-stats { display:flex; gap:16px; align-items:center; }
+.pq-stat { display:flex; align-items:center; gap:5px; font-size:13px; font-weight:600; color:var(--muted); }
+.pq-stat-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.pq-stat-dot.ok { background:var(--success); }
+.pq-stat-dot.no { background:var(--danger); }
+.pq-stat-num { color:var(--text); font-weight:700; }
+.pq-progress-label { font-size:12px; color:var(--muted); font-weight:500; }
+.pq-progress-track { background:var(--border); border-radius:9999px; height:5px; overflow:hidden; margin-bottom:18px; }
+.pq-progress-fill { height:100%; background:var(--accent); border-radius:9999px; transition:width .35s ease; }
+
+.pq-q-card { padding:24px; }
+.pq-q-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.pq-q-tag { font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--muted); }
+.pq-q-text { font-size:1.02rem; line-height:1.65; margin-bottom:20px; font-weight:600; color:var(--text); }
+
+.pq-opt {
+  width:100%; text-align:left; padding:13px 16px;
+  background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:var(--radius); color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; line-height:1.5;
+  cursor:pointer; transition:all .15s; margin-bottom:9px; display:flex; align-items:flex-start; gap:10px;
+}
+.pq-opt:hover:not(:disabled) { border-color:var(--accent); background:rgba(29,78,216,.05); }
+.pq-opt:disabled { cursor:not-allowed; }
+.pq-opt-letter {
+  width:22px; height:22px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11.5px; font-weight:700; background:var(--bg2); color:var(--muted); margin-top:1px;
+}
+.pq-opt.is-correct { border-color:var(--success); background:rgba(5,150,105,.07); }
+.pq-opt.is-correct .pq-opt-letter { background:var(--success); color:#fff; }
+.pq-opt.is-wrong { border-color:var(--danger); background:rgba(220,38,38,.06); }
+.pq-opt.is-wrong .pq-opt-letter { background:var(--danger); color:#fff; }
+
+.pq-expl-box {
+  margin-top:6px; padding:14px 16px; background:var(--bg2);
+  border-radius:var(--radius); font-size:13.5px; line-height:1.6; color:var(--text2);
+}
+.pq-expl-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin-bottom:5px; display:block; }
+
+.pq-results-card { text-align:center; padding:32px 24px; }
+.pq-results-score { font-size:2.6rem; font-weight:800; color:var(--accent); margin-bottom:4px; }
+.pq-results-title { font-size:1.1rem; font-weight:700; margin-bottom:4px; }
+.pq-results-sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
+.pq-stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:26px; }
+.pq-stat-box { background:var(--bg2); border-radius:var(--radius); padding:14px 8px; }
+.pq-stat-box-num { font-size:1.3rem; font-weight:800; }
+.pq-stat-box-label { font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
+
+/* ══════════════════════════════════════════════════
    TOASTS
 ══════════════════════════════════════════════════ */
 #toasts {
@@ -957,7 +1026,7 @@ footer .logo { font-size:17px; margin-bottom:10px; display:block; }
   display:flex; align-items:center; justify-content:center;
   margin-bottom:12px; font-size:1.4rem;
 }
-.subject-card h3 { font-size:14px; font-weight:700; margin-bottom:12px; }
+.subject-name { font-size:14px; font-weight:700; margin-bottom:12px; }
 .subject-btns { display:flex; gap:7px; }
 .subject-btns .btn { flex:1; padding:7px 6px; font-size:12px; }
 
@@ -1938,39 +2007,83 @@ footer .logo { font-size:17px; margin-bottom:10px; display:block; }
      PAST QUESTIONS
 ══════════════════════════════════════════════ -->
 <div id="page-past" class="page">
-  <div class="pc" style="max-width:700px;">
-    <div class="sh">Past Questions Bank</div>
-    <p class="sh-sub">Practice real WAEC &amp; JAMB questions with explanations</p>
+  <div class="pc" style="max-width:640px;">
+    <div class="sh">Past Questions</div>
+    <p class="sh-sub">Practice real WAEC, JAMB &amp; NECO questions with explanations</p>
 
-    <div class="card" style="margin-bottom:18px;">
-      <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <button onclick="setPQExam('WAEC',this)" id="pq-w" class="btn btn-secondary" style="padding:8px 18px;">WAEC</button>
-        <button onclick="setPQExam('JAMB',this)" id="pq-j" class="btn btn-ghost" style="padding:8px 18px;">JAMB</button>
+    <!-- Setup card -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="pq-exam-row">
+        <button onclick="setPQExam('WAEC',this)" id="pq-w" class="pq-exam-btn active">WAEC</button>
+        <button onclick="setPQExam('JAMB',this)" id="pq-j" class="pq-exam-btn">JAMB</button>
+        <button onclick="setPQExam('NECO',this)" id="pq-n" class="pq-exam-btn">NECO</button>
       </div>
-      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+      <div class="pq-setup-row">
         <div style="flex:1;min-width:160px;">
           <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Subject</label>
-          <input id="pq-subj" class="inp" style="margin:0;" placeholder="e.g. Mathematics">
+          <input id="pq-subj" class="inp" placeholder="e.g. Mathematics">
         </div>
-        <button onclick="loadPQ()" class="btn btn-primary" style="padding:12px 22px;">Load Question</button>
+        <button onclick="startPQSession()" class="btn btn-primary" style="padding:11px 22px;">Start Practice</button>
       </div>
     </div>
 
-    <div id="pq-loading" style="display:none;" class="card" style="text-align:center;padding:28px;">
+    <!-- Status bar (shown during session) -->
+    <div id="pq-scorebar" style="display:none;margin-bottom:6px;">
+      <div class="pq-status">
+        <div class="pq-status-stats">
+          <span class="pq-stat"><span class="pq-stat-dot ok"></span><span class="pq-stat-num" id="pq-correct-count">0</span> correct</span>
+          <span class="pq-stat"><span class="pq-stat-dot no"></span><span class="pq-stat-num" id="pq-wrong-count">0</span> wrong</span>
+        </div>
+        <span class="pq-progress-label" id="pq-progress-label">Q 1 of 0</span>
+      </div>
+      <div class="pq-progress-track">
+        <div id="pq-progress-bar" class="pq-progress-fill" style="width:0%;"></div>
+      </div>
+      <span id="pq-streak-wrap" style="display:none;font-size:12px;color:var(--accent);font-weight:600;">🔥 <span id="pq-streak">0</span> in a row</span>
+    </div>
+
+    <div id="pq-loading" style="display:none;text-align:center;padding:28px;" class="card">
       <div class="spinner" style="margin:0 auto 10px;"></div>
-      <p style="color:var(--muted);">Loading question...</p>
+      <p style="color:var(--muted);">Loading questions...</p>
     </div>
 
-    <div id="pq-display" style="display:none;" class="card" style="border-color:var(--accent);">
-      <div style="display:flex;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-        <span class="badge badge-blue" id="pq-b1">WAEC</span>
-        <span class="badge badge-teal" id="pq-b2">—</span>
+    <!-- Question card -->
+    <div id="pq-display" style="display:none;" class="card pq-q-card">
+      <div class="pq-q-meta">
+        <span class="pq-q-tag" id="pq-b1">WAEC</span>
+        <span class="badge badge-blue" id="pq-b2">—</span>
       </div>
-      <p id="pq-q" style="font-size:1rem;line-height:1.7;margin-bottom:18px;font-weight:600;"></p>
+      <p id="pq-q" class="pq-q-text"></p>
       <div id="pq-opts"></div>
-      <div id="pq-expl" style="display:none;margin-top:14px;padding:13px;background:rgba(13,148,136,.07);border-radius:var(--radius);border-left:3px solid var(--teal);font-size:13.5px;line-height:1.6;"></div>
-      <button onclick="loadPQ()" id="pq-next" class="btn btn-primary" style="display:none;margin-top:14px;">Next Question</button>
+      <div id="pq-expl" style="display:none;" class="pq-expl-box"></div>
+      <button onclick="nextPQ()" id="pq-next" class="btn btn-primary" style="display:none;margin-top:16px;width:100%;">Next Question</button>
     </div>
+
+    <!-- Results summary card -->
+    <div id="pq-results" style="display:none;" class="card pq-results-card">
+      <div class="pq-results-score" id="pq-res-pct">0%</div>
+      <div class="pq-results-title" id="pq-res-title">Round Complete</div>
+      <div class="pq-results-sub" id="pq-res-sub"></div>
+      <div class="pq-stat-grid">
+        <div class="pq-stat-box">
+          <div class="pq-stat-box-num" style="color:var(--success);" id="pq-res-correct">0</div>
+          <div class="pq-stat-box-label">Correct</div>
+        </div>
+        <div class="pq-stat-box">
+          <div class="pq-stat-box-num" style="color:var(--danger);" id="pq-res-wrong">0</div>
+          <div class="pq-stat-box-label">Wrong</div>
+        </div>
+        <div class="pq-stat-box">
+          <div class="pq-stat-box-num" style="color:var(--text);" id="pq-res-streak">0</div>
+          <div class="pq-stat-box-label">Best Streak</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="startPQSession()" class="btn btn-primary">Play Again</button>
+        <button onclick="document.getElementById('pq-results').style.display='none';document.getElementById('pq-scorebar').style.display='none';" class="btn btn-ghost">Change Subject</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -2260,15 +2373,32 @@ function toggleTheme(){
 // ============================================================
 window.onload = async function() {
   makeParticles();
+
+  // ── Attach event listeners regardless of login state ──
+  document.getElementById("li-pass").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+  document.getElementById("su-conf").addEventListener("keydown", e => { if(e.key==="Enter") doSignup(); });
+  document.getElementById("ac-msg").addEventListener("keydown",  e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();} });
+  document.getElementById("ac-msg").addEventListener("input", function(){ updateCharCount(); this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,120)+'px'; });
+  document.getElementById("cl-inp").addEventListener("keydown",  e => { if(e.key==="Enter") sendMsg(); });
+  document.getElementById("s-query").addEventListener("keydown", e => { if(e.key==="Enter") doSearch(); });
+  if(window.speechSynthesis) window.speechSynthesis.getVoices();
+  checkBreakpoint();
+  window.addEventListener("resize", checkBreakpoint);
+
   TK  = localStorage.getItem("ox_token");
   CU  = localStorage.getItem("ox_user");
 
   if (TK && CU) {
     try {
+      // Timeout after 8 s so the splash never spins forever (Render cold-start etc.)
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
       const r = await fetch(`${API}/validate-token`, {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({token: TK})
+        body: JSON.stringify({token: TK}),
+        signal: controller.signal
       });
+      clearTimeout(timer);
       const d = await r.json();
       if (r.ok && d.valid) {
         updateStats(d.score, d.streak, d.coins);
@@ -2276,23 +2406,13 @@ window.onload = async function() {
         return;
       }
     } catch(e) {
+      /* Network error or timeout — treat saved session as still valid so app opens */
       bootApp(); return;
     }
     clearAuth();
   }
   hideSplash();
   go("page-landing");
-
-  document.getElementById("li-pass").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
-  document.getElementById("su-conf").addEventListener("keydown", e => { if(e.key==="Enter") doSignup(); });
-  document.getElementById("ac-msg").addEventListener("keydown",  e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();} });
-  document.getElementById("ac-msg").addEventListener("input", function(){ updateCharCount(); this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,120)+'px'; });
-  document.getElementById("cl-inp").addEventListener("keydown",  e => { if(e.key==="Enter") sendMsg(); });
-  document.getElementById("s-query").addEventListener("keydown", e => { if(e.key==="Enter") doSearch(); });
-  // preload voices for TTS
-  if(window.speechSynthesis) window.speechSynthesis.getVoices();
-  checkBreakpoint();
-  window.addEventListener("resize", checkBreakpoint);
 };
 
 function hideSplash(){ document.getElementById("app-loading").style.display="none"; }
@@ -2546,7 +2666,7 @@ function renderSubjects(){
   document.getElementById("subjects-grid").innerHTML=SLIST.map((s,i)=>`
     <div class="card card-hover subject-card" style="animation-delay:${i*0.04}s;">
       <div class="subject-icon" style="background:rgba(29,78,216,.08);">${SICONS[s]||"📚"}</div>
-      <h3 class="subject-card h3">${s}</h3>
+      <h3 class="subject-name">${s}</h3>
       <div class="subject-btns">
         <button onclick="openLearn('${s}','${activeLevel}')" class="btn btn-primary">Learn</button>
         <button onclick="openQuiz('${s}','${activeLevel}')" class="btn btn-ghost">Quiz</button>
@@ -3048,62 +3168,148 @@ async function clearChatHistory(){
 }
 
 // ============================================================
-// PAST QUESTIONS
+// PAST QUESTIONS — session-based, no repeats, score + streak
 // ============================================================
+// pqExam already declared above — only declare the new session variables here
+let pqQueue=[], pqIndex=0, pqCorrect=0, pqWrong=0, pqStreak=0, pqBestStreak=0;
+
 function setPQExam(exam,el){
   pqExam=exam;
-  document.getElementById("pq-w").className="btn "+(exam==="WAEC"?"btn-secondary":"btn-ghost")+" "+document.getElementById("pq-w").className.split(" ").filter(c=>c!=="btn-secondary"&&c!=="btn-ghost").join(" ");
-  document.getElementById("pq-w").className="btn "+(exam==="WAEC"?"btn-secondary":"btn-ghost");
-  document.getElementById("pq-j").className="btn "+(exam==="JAMB"?"btn-secondary":"btn-ghost");
+  document.getElementById("pq-w").className="pq-exam-btn"+(exam==="WAEC"?" active":"");
+  document.getElementById("pq-j").className="pq-exam-btn"+(exam==="JAMB"?" active":"");
+  const pqn=document.getElementById("pq-n");
+  if(pqn) pqn.className="pq-exam-btn"+(exam==="NECO"?" active":"");
 }
 
-async function loadPQ(){
+function pqShuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+async function startPQSession(){
   const subj=document.getElementById("pq-subj").value.trim();
   if(!subj) return toast("Please enter a subject","warning");
   document.getElementById("pq-display").style.display="none";
+  document.getElementById("pq-results").style.display="none";
   document.getElementById("pq-loading").style.display="block";
-  document.getElementById("pq-next").style.display="none";
+  document.getElementById("pq-scorebar").style.display="none";
   try{
-    const r=await fetch(`${API}/past-questions/random/${encodeURIComponent(subj)}?exam=${pqExam}`);
+    const r=await fetch(`${API}/past-questions/${encodeURIComponent(pqExam)}/${encodeURIComponent(subj)}`);
     const d=await r.json();
     document.getElementById("pq-loading").style.display="none";
-    const q=d.question;
-    if(!q) return toast("No questions found. Try another subject.","warning");
-    document.getElementById("pq-b1").textContent=pqExam;
-    document.getElementById("pq-b2").textContent=q.year?`Year: ${q.year}`:"AI Generated";
-    document.getElementById("pq-q").textContent=q.question_text;
-    document.getElementById("pq-expl").style.display="none";
-    document.getElementById("pq-opts").innerHTML=["a","b","c","d"].map(o=>`<button class="opt" onclick="answerPQ('${o.toUpperCase()}','${(q.correct_answer||"A").toUpperCase()}','${(q.explanation||"").replace(/'/g,"\\'")}',this)">${o.toUpperCase()}) ${q["option_"+o]||""}</button>`).join("");
-    document.getElementById("pq-display").style.display="block";
-  }catch(e){ document.getElementById("pq-loading").style.display="none"; toast("Failed to load question","error"); }
+    const list=Array.isArray(d)?d:[];
+    if(!list.length) return toast("No questions found for that subject. Try another.","warning");
+    pqQueue=pqShuffle([...list]);
+    pqIndex=0; pqCorrect=0; pqWrong=0; pqStreak=0; pqBestStreak=0;
+    document.getElementById("pq-scorebar").style.display="block";
+    pqUpdateScorebar();
+    pqShowQuestion();
+  }catch(e){
+    document.getElementById("pq-loading").style.display="none";
+    toast("Failed to load questions","error");
+  }
+}
+
+function pqUpdateScorebar(){
+  document.getElementById("pq-correct-count").textContent=pqCorrect;
+  document.getElementById("pq-wrong-count").textContent=pqWrong;
+  document.getElementById("pq-streak").textContent=pqStreak;
+  const sw=document.getElementById("pq-streak-wrap");
+  if(sw) sw.style.display=pqStreak>1?"inline":"none";
+  document.getElementById("pq-progress-label").textContent=`Q ${pqIndex+1} of ${pqQueue.length}`;
+  const pct=pqQueue.length?Math.round((pqIndex/pqQueue.length)*100):0;
+  document.getElementById("pq-progress-bar").style.width=pct+"%";
+}
+
+function pqShowQuestion(){
+  if(pqIndex>=pqQueue.length){ pqShowResults(); return; }
+  const q=pqQueue[pqIndex];
+  pqUpdateScorebar();
+  document.getElementById("pq-b1").textContent=pqExam;
+  document.getElementById("pq-b2").textContent=q.year?`Year: ${q.year}`:"Practice";
+  document.getElementById("pq-q").textContent=q.question_text;
+  document.getElementById("pq-expl").style.display="none";
+  document.getElementById("pq-next").style.display="none";
+  const safeExpl=(q.explanation||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ");
+  const correct=(q.correct_answer||"A").toUpperCase();
+  document.getElementById("pq-opts").innerHTML=["a","b","c","d"].map(o=>`
+    <button class="pq-opt" onclick="answerPQ('${o.toUpperCase()}','${correct}','${safeExpl}',this)">
+      <span class="pq-opt-letter">${o.toUpperCase()}</span><span>${q["option_"+o]||""}</span>
+    </button>`).join("");
+  document.getElementById("pq-display").style.display="block";
+  document.getElementById("pq-display").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function nextPQ(){
+  pqIndex++;
+  pqShowQuestion();
 }
 
 function answerPQ(sel,correct,expl,btn){
-  document.querySelectorAll("#pq-opts .opt").forEach(b=>b.disabled=true);
-  if(sel===correct){ btn.classList.add("correct"); toast("Correct!","success"); }
-  else{
-    btn.classList.add("wrong");
+  document.querySelectorAll("#pq-opts .pq-opt").forEach(b=>b.disabled=true);
+  const isCorrect=sel===correct;
+  if(isCorrect){
+    btn.classList.add("is-correct");
+    pqCorrect++; pqStreak++;
+    if(pqStreak>pqBestStreak) pqBestStreak=pqStreak;
+    toast(pqStreak>1?`Correct — ${pqStreak} in a row`:"Correct","success");
+  } else {
+    btn.classList.add("is-wrong");
+    pqStreak=0;
     const map={A:0,B:1,C:2,D:3};
-    const btns=document.querySelectorAll("#pq-opts .opt");
-    if(btns[map[correct]]) btns[map[correct]].classList.add("correct");
-    toast(`Wrong! Correct: ${correct}`,"error");
+    const btns=document.querySelectorAll("#pq-opts .pq-opt");
+    if(btns[map[correct]]) btns[map[correct]].classList.add("is-correct");
+    pqWrong++;
+    toast(`Not quite — correct answer is ${correct}`,"error");
   }
+  document.getElementById("pq-correct-count").textContent=pqCorrect;
+  document.getElementById("pq-wrong-count").textContent=pqWrong;
+  document.getElementById("pq-streak").textContent=pqStreak;
+  const sw=document.getElementById("pq-streak-wrap");
+  if(sw) sw.style.display=pqStreak>1?"inline":"none";
   if(expl){
     const e=document.getElementById("pq-expl");
-    e.innerHTML=`Explanation: ${expl}<div style="margin-top:8px;display:flex;gap:8px;">
+    e.innerHTML=`<span class="pq-expl-label">Explanation</span>${expl}<div style="margin-top:10px;display:flex;gap:8px;">
       <button class="bubble-btn speak-btn" onclick="speakText('${expl.replace(/'/g,"\\'")}')">
-        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>
-        Speak
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg> Speak
       </button>
       <button class="bubble-btn" onclick="stopSpeaking()">
-        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-        Stop
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg> Stop
       </button>
     </div>`;
     e.style.display="block";
     speakText(expl);
   }
+  const isLast=pqIndex>=pqQueue.length-1;
+  document.getElementById("pq-next").textContent=isLast?"See Results":"Next Question";
   document.getElementById("pq-next").style.display="block";
+}
+
+function pqShowResults(){
+  document.getElementById("pq-display").style.display="none";
+  const total=pqCorrect+pqWrong;
+  const pct=total?Math.round((pqCorrect/total)*100):0;
+  const title=pct>=80?"Excellent Work":pct>=60?"Great Job":pct>=40?"Good Effort":"Keep Practising";
+  const sub=`${pqExam} · ${document.getElementById("pq-subj").value.trim()}`;
+  document.getElementById("pq-res-pct").textContent=pct+"%";
+  document.getElementById("pq-res-title").textContent=title;
+  document.getElementById("pq-res-sub").textContent=sub;
+  document.getElementById("pq-res-correct").textContent=pqCorrect;
+  document.getElementById("pq-res-wrong").textContent=pqWrong;
+  document.getElementById("pq-res-streak").textContent=pqBestStreak;
+  document.getElementById("pq-progress-bar").style.width="100%";
+  document.getElementById("pq-progress-label").textContent=`Done! ${pqQueue.length} of ${pqQueue.length}`;
+  document.getElementById("pq-results").style.display="block";
+  document.getElementById("pq-results").scrollIntoView({behavior:"smooth"});
+  if(CU && pct>0){
+    fetch(`${API}/quiz/save-result`,{method:"POST",headers:hdrs(),body:JSON.stringify({
+      username:CU,subject:document.getElementById("pq-subj").value.trim(),
+      level:pqExam,topic:pqExam+" Past Questions",score:pqCorrect,total_questions:total
+    })}).catch(()=>{});
+  }
 }
 
 // ============================================================
@@ -3476,16 +3682,19 @@ console.log("%cOx-Bridge Learning Hub v2.0 | Ox-Bridge Technology | Built by Goo
     initScrollReveal();
   }
   // re-init when navigating back to landing
-  const _origGo = window.go;
-  window.go = function(id){
-    _origGo && _origGo(id);
-    if(id==='page-landing') setTimeout(initScrollReveal, 80);
-  };
+  // Defer the override until after go() is defined (end of script)
+  window.addEventListener('load', function(){
+    const _origGo = window.go;
+    window.go = function(id){
+      _origGo && _origGo(id);
+      if(id==='page-landing') setTimeout(initScrollReveal, 80);
+    };
+  });
 })();
 
 // Register service worker for PWA
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/Past-waec-jamb-Q-A/sw.js', {scope: '/Past-waec-jamb-Q-A/'}).catch(()=>{});
+  navigator.serviceWorker.register('/sw.js', {scope: '/'}).catch(()=>{});
 }
 </script>
 </body>
